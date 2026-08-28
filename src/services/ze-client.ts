@@ -22,11 +22,13 @@ export const QUERIES = {
   categories: "query ListCategories { listCategories { id displayName icon } }",
   groups: "query ListRootProductGroups { listRootProductGroups { id displayName } }",
   search:
-    "query SearchProducts($queryTerm: String!) { searchProducts(queryTerm: $queryTerm) { __typename } }",
+    "query SearchProducts($queryTerm: String!) { searchProducts(queryTerm: $queryTerm) { items { id displayName } } }",
   loadCategory:
-    "query LoadCategory($categoryId: Int!) { loadCategory(filter: { categoryId: $categoryId }) { __typename } }",
-  orders: "query ListOrders { listOrders { __typename } }",
-  track: "query LoadOrder($orderNumber: String!) { loadOrder(orderNumber: $orderNumber) { __typename } }",
+    "query LoadCategory($categoryId: Int!) { loadCategory(filter: { categoryId: $categoryId }) { products { items { id displayName } } } }",
+  orders:
+    "query ListOrders { listOrders { id number createdDate totalPrice statusesHistory { status createdDate } lineItems { id displayName } } }",
+  track:
+    "query LoadOrder($orderNumber: String!) { loadOrder(orderNumber: $orderNumber) { order { number createdDate totalPrice statusesHistory { status createdDate } lineItems { id displayName } } } }",
   trackV2:
     "query LoadOrderV2($orderNumber: String!) { loadOrderv2(orderNumber: $orderNumber) { __typename } }"
 } as const;

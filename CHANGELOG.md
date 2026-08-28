@@ -1,3 +1,13 @@
+## 0.1.1 - 2026-08-28
+
+Search, order history and track GraphQL now select live-probed item/order/status fields instead of `__typename` stubs.
+
+- `searchProducts` → `items { id displayName }` (JSON 200)
+- `listOrders` → `id number createdDate totalPrice statusesHistory { status createdDate } lineItems { id displayName }` (JSON 401 without token)
+- `loadOrder` → `order { number createdDate totalPrice statusesHistory { status createdDate } lineItems { id displayName } }` (JSON 401 without token)
+- `loadCategory` → `products { items { id displayName } }`
+- client-paths test imports shipped `QUERIES` and fails if those selections regress to `__typename`.
+
 ## 0.1.0 - 2026-08-28
 
 Unofficial local-first Zé Delivery MCP (stdio + optional loopback HTTP).

@@ -72,6 +72,32 @@ assert.ok(bodies.some((b) => b.includes("listOrders")));
 assert.ok(bodies.some((b) => b.includes("loadOrder")));
 assert.ok(bodies.some((b) => b.includes("createOrder")));
 assert.ok(bodies.some((b) => b.includes("cancelOrder")));
+
+assert.match(QUERIES.search, /searchProducts/);
+assert.match(QUERIES.search, /items\s*\{\s*id\s+displayName\s*\}/);
+assert.doesNotMatch(QUERIES.search, /searchProducts\([^)]*\)\s*\{\s*__typename\s*\}/);
+assert.match(QUERIES.orders, /listOrders/);
+assert.match(QUERIES.orders, /\bid\b/);
+assert.match(QUERIES.orders, /\bnumber\b/);
+assert.match(QUERIES.orders, /statusesHistory/);
+assert.match(QUERIES.orders, /lineItems\s*\{\s*id\s+displayName\s*\}/);
+assert.doesNotMatch(QUERIES.orders, /listOrders\s*\{\s*__typename\s*\}/);
+assert.match(QUERIES.track, /loadOrder/);
+assert.match(QUERIES.track, /order\s*\{/);
+assert.match(QUERIES.track, /statusesHistory/);
+assert.match(QUERIES.track, /lineItems\s*\{\s*id\s+displayName\s*\}/);
+assert.doesNotMatch(QUERIES.track, /loadOrder\([^)]*\)\s*\{\s*__typename\s*\}/);
+
+const searchBody = bodies.find((b) => b.includes("searchProducts")) || "";
+assert.match(searchBody, /items/);
+assert.match(searchBody, /displayName/);
+const ordersBody = bodies.find((b) => b.includes("listOrders")) || "";
+assert.match(ordersBody, /statusesHistory/);
+assert.match(ordersBody, /lineItems/);
+const trackBody = bodies.find((b) => b.includes("loadOrder")) || "";
+assert.match(trackBody, /statusesHistory/);
+assert.match(trackBody, /lineItems/);
+
 assert.equal(QUERIES.categories.includes("listCategories"), true);
 assert.equal(MUTATIONS.place.includes("createOrder"), true);
 
