@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "ze": {
+      "command": "npx",
+      "args": ["-y", "ze-mcp-unofficial"]
+    }
+  }
+}

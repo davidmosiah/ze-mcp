@@ -1,0 +1,21 @@
+# ze-mcp-unofficial
+
+Unofficial local-first MCP for personal Zé Delivery catalog/search/orders (Brazil). Not a partner B2B API.
+
+Install:
+- npx -y ze-mcp-unofficial setup
+- npx -y ze-mcp-unofficial auth --from-header "Bearer …"  (DevTools Authorization)
+- npx -y ze-mcp-unofficial doctor
+
+Stdio (never set ZE_ALLOW_MUTATIONS in the snippet):
+{ "mcpServers": { "ze": { "command": "npx", "args": ["-y", "ze-mcp-unofficial"] } } }
+
+Default: read-only. Never pays.
+Charge only if ZE_ALLOW_MUTATIONS is enabled AND explicit_user_intent is true. Guest tokens cannot charge.
+Redacts street, phone, email, GPS/latlng polylines.
+
+Read: ze_list_categories, ze_list_groups, ze_search, ze_order_history, ze_track_order.
+Gated pay: ze_place_order, ze_cancel_order.
+Intent only: ze_logout.
+
+HTTP optional: loopback 127.0.0.1 + Origin allowlist. Tokens in ~/.ze-mcp/tokens.json (0600), never in git/tarball.

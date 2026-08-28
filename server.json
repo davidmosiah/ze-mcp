@@ -1,0 +1,43 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.davidmosiah/ze-mcp",
+  "description": "Unofficial local-first Zé Delivery MCP: catalog, search and order tracking. Place-order is fail-closed.",
+  "repository": {
+    "url": "https://github.com/davidmosiah/ze-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "ze-mcp-unofficial",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "ZE_ACCESS_TOKEN",
+          "description": "Personal Zé Delivery ticket. Prefer `ze-mcp-unofficial auth --token` so this never sits in client config.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true
+        },
+        {
+          "name": "ZE_ALLOW_MUTATIONS",
+          "description": "Set true to allow place-order and cancel. Default false (never pays).",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "ZE_PRIVACY_MODE",
+          "description": "summary | structured | raw. Default summary (redacts GPS/street/phone).",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}
