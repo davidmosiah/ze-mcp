@@ -21,6 +21,28 @@ import {
   handleSearch,
   handleTrackOrder
 } from "../services/handlers.js";
+import type { ToolResponse } from "../types.js";
+
+type CallFn = (args: Record<string, unknown>) => Promise<ToolResponse>;
+const call =
+  <T,>(fn: (input: T) => Promise<ToolResponse>): CallFn =>
+  (args) =>
+    fn(args as T);
+
+/** Same handlers as MCP tools — CLI `call` uses this so skill-only clients hit the identical gates. */
+export const TOOL_CALLS: Record<string, CallFn> = {
+  ze_connection_status: call(handleConnectionStatus),
+  ze_capabilities: call(handleCapabilities),
+  ze_privacy_audit: call(handlePrivacyAudit),
+  ze_list_categories: call(handleListCategories),
+  ze_list_groups: call(handleListGroups),
+  ze_search: call(handleSearch),
+  ze_order_history: call(handleOrderHistory),
+  ze_track_order: call(handleTrackOrder),
+  ze_place_order: call(handlePlaceOrder),
+  ze_cancel_order: call(handleCancelOrder),
+  ze_logout: call(handleLogout)
+};
 
 const readOnly = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true } as const;
 const gatedWrite = { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true } as const;

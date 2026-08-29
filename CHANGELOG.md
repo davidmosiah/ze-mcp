@@ -1,3 +1,7 @@
+## 0.1.2 - 2026-08-28
+
+Skill layer ships in-package (`skill/SKILL.md`). Agents can use MCP tools **or** `call <tool> --json` on the same binary; mutation gates are identical. Default docs still do not contain a copyable mutations assignment.
+
 ## 0.1.1 - 2026-08-28
 
 Search, order history and track GraphQL now select live-probed item/order/status fields instead of `__typename` stubs.

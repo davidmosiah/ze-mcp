@@ -7,6 +7,8 @@ Unofficial local-first Zé Delivery MCP. Personal drinks delivery for David / Li
 - `npm ci`
 - `npm test` (typecheck, build, smoke, mutation gate, redaction, handlers, secret-scan)
 - `npx ze-mcp-unofficial doctor`
+- `npx ze-mcp-unofficial call ze_capabilities --json '{}'`
+- Skill: `skill/SKILL.md` (copy into the agent's skills dir; do not duplicate the API client)
 
 ## Rules
 

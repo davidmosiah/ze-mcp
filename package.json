@@ -1,6 +1,6 @@
 {
   "name": "ze-mcp-unofficial",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Unofficial local-first Zé Delivery MCP for catalog, product search and order tracking. Never pays unless ZE_ALLOW_MUTATIONS and explicit_user_intent are both set.",
   "type": "module",
   "bin": {
@@ -17,7 +17,8 @@
     "CONTRIBUTING.md",
     "server.json",
     "examples",
-    "llms.txt"
+    "llms.txt",
+    "skill"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
