@@ -45,8 +45,8 @@ Token is a captured `Authorization` from `api.ze.delivery`, stored at `~/.ze-mcp
 ## Loop
 
 1. `ze_connection_status` (or `doctor --json`). Expect `unofficial` and `never_pays_by_default`.
-2. Categories / search / history as asked. Street, phone, GPS stay redacted.
-3. **Stop.** Do not call `ze_place_order` or `ze_cancel_order` unless the user clearly asked. If the tool returns `USER_ACTION_REQUIRED`, report that and stop. Do not invent env flags.
+2. Categories / search / history as asked. Street, phone, GPS stay redacted. “Só listar” = `ze_list_categories` / `ze_search` then stop.
+3. **Stop.** Do not call `ze_place_order`, `ze_complete_checkout` or `ze_cancel_order` unless the user clearly asked. Alcohol writes also need `confirmed_legal_age`. If the tool returns `USER_ACTION_REQUIRED`, report that and stop. Do not invent env flags.
 
 ## Never
 

@@ -1,3 +1,7 @@
+## 0.1.3 - 2026-09-01
+
+Probe-backed GraphQL expansion: loadCategory, loadCart, loadProduct, listPaymentMethods, loadCheckout, manageCheckout preview, bulkAddToCart, clearCartItems, applyCoupon, rateOrder, completeCheckout. Alcohol 18+ gate is fail-closed (no age API field). Addresses remain an honest gap.
+
 ## 0.1.2 - 2026-08-28
 
 Skill layer ships in-package (`skill/SKILL.md`). Agents can use MCP tools **or** `call <tool> --json` on the same binary; mutation gates are identical. Default docs still do not contain a copyable mutations assignment.

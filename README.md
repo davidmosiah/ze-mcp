@@ -54,11 +54,13 @@ Gates are identical. Copy `skill/SKILL.md` into your agent skills dir (`~/.agent
 
 | Kind | Tools |
 | --- | --- |
-| Read · catalog | `ze_list_categories`, `ze_list_groups`, `ze_search` |
+| Read · catalog | `ze_list_categories`, `ze_list_groups`, `ze_search`, `ze_load_category`, `ze_product_detail` |
+| Read · cart / pay | `ze_get_cart`, `ze_list_payment_methods`, `ze_load_checkout`, `ze_checkout_preview` |
 | Read · account | `ze_order_history`, `ze_track_order` |
-| Meta | `ze_connection_status`, `ze_capabilities`, `ze_privacy_audit` |
-| Gated pay (mutations **and** intent) | `ze_place_order`, `ze_cancel_order` |
-| Intent only | `ze_logout` |
+| Meta | `ze_connection_status`, `ze_capabilities` (includes `honest_gaps`), `ze_privacy_audit` |
+| Gated cart | `ze_bulk_add_to_cart` (also 18+), `ze_clear_cart_items`, `ze_apply_coupon` |
+| Gated pay (mutations **and** intent) | `ze_place_order` (also 18+), `ze_complete_checkout` (also 18+), `ze_cancel_order` |
+| Intent only | `ze_logout`, `ze_rate_order` |
 
 ## HTTP (optional, loopback)
 

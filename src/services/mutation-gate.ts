@@ -39,6 +39,19 @@ export function assertPlaceOrderAllowed(input: GateInput): void {
   assertExplicitIntent(input.explicitUserIntent, "place a Zé Delivery order or charge money");
 }
 
+export function assertCartWriteAllowed(input: GateInput): void {
+  assertMutationsEnabled(input.allowMutations, "change the Zé Delivery cart");
+  assertExplicitIntent(input.explicitUserIntent, "change the Zé Delivery cart");
+}
+
+export function assertLegalAge(confirmed: boolean | undefined, action: string): void {
+  if (confirmed !== true) {
+    throw new MutationGateError(
+      `${USER_ACTION_REQUIRED}: confirm legal drinking age (18+) to ${action}. No age API field exists; this gate is fail-closed.`
+    );
+  }
+}
+
 export function assertCancelOrderAllowed(input: GateInput): void {
   assertMutationsEnabled(input.allowMutations, "cancel a Zé Delivery order");
   assertExplicitIntent(input.explicitUserIntent, "cancel a Zé Delivery order");

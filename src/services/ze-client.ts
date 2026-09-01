@@ -25,6 +25,11 @@ export const QUERIES = {
     "query SearchProducts($queryTerm: String!) { searchProducts(queryTerm: $queryTerm) { items { id displayName } } }",
   loadCategory:
     "query LoadCategory($categoryId: Int!) { loadCategory(filter: { categoryId: $categoryId }) { products { items { id displayName } } } }",
+  loadCart: "query { loadCart { cart { id } } }",
+  loadProduct:
+    "query LoadProduct($id: ID!) { loadProduct(id: $id) { id displayName category { id displayName } } }",
+  payment: "query { listPaymentMethods { __typename } }",
+  loadCheckout: "query { loadCheckout { __typename } }",
   orders:
     "query ListOrders { listOrders { id number createdDate totalPrice statusesHistory { status createdDate } lineItems { id displayName } } }",
   track:
@@ -36,8 +41,17 @@ export const QUERIES = {
 export const MUTATIONS = {
   place: "mutation CreateOrder($input: CreateOrderInput!) { createOrder(input: $input) { __typename } }",
   cancel:
-    "mutation CancelOrder($orderNumber: String!) { cancelOrder(orderNumber: $orderNumber) { __typename } }"
+    "mutation CancelOrder($orderNumber: String!) { cancelOrder(orderNumber: $orderNumber) { __typename } }",
+  bulkAdd:
+    "mutation BulkAdd($bulkAddToCartInput: BulkAddToCartInput!) { bulkAddToCart(bulkAddToCartInput: $bulkAddToCartInput) { __typename } }",
+  clearItems: "mutation { clearCartItems { __typename } }",
+  applyCoupon: "mutation Apply($couponCode: String!) { applyCoupon(couponCode: $couponCode) { __typename } }",
+  rate: "mutation Rate($orderNumber: String!, $rating: Int!) { rateOrder(orderNumber: $orderNumber, rating: $rating) { __typename } }",
+  manageCheckout: "mutation { manageCheckout { __typename } }",
+  completeCheckout: "mutation { completeCheckout { __typename } }"
 } as const;
+
+export const ALCOHOL_CATEGORY_IDS = new Set([92, 94, 95]);
 
 export function consumerHeaders(origin: string, visitorId: string): Record<string, string> {
   return {
@@ -71,6 +85,46 @@ export class ZeClient {
 
   async loadCategory(categoryId: number): Promise<unknown> {
     return this.graphql(QUERIES.loadCategory, { categoryId });
+  }
+
+  async getCart(): Promise<unknown> {
+    return this.graphql(QUERIES.loadCart);
+  }
+
+  async productDetail(id: string): Promise<unknown> {
+    return this.graphql(QUERIES.loadProduct, { id });
+  }
+
+  async listPaymentMethods(): Promise<unknown> {
+    return this.graphql(QUERIES.payment, undefined, { auth: true });
+  }
+
+  async loadCheckout(): Promise<unknown> {
+    return this.graphql(QUERIES.loadCheckout, undefined, { auth: true });
+  }
+
+  async manageCheckout(): Promise<unknown> {
+    return this.graphql(MUTATIONS.manageCheckout);
+  }
+
+  async bulkAddToCart(bulkAddToCartInput: Record<string, unknown>): Promise<unknown> {
+    return this.graphql(MUTATIONS.bulkAdd, { bulkAddToCartInput }, { auth: true });
+  }
+
+  async clearCartItems(): Promise<unknown> {
+    return this.graphql(MUTATIONS.clearItems, undefined, { auth: true });
+  }
+
+  async applyCoupon(couponCode: string): Promise<unknown> {
+    return this.graphql(MUTATIONS.applyCoupon, { couponCode }, { auth: true });
+  }
+
+  async rateOrder(orderNumber: string, rating: number): Promise<unknown> {
+    return this.graphql(MUTATIONS.rate, { orderNumber, rating }, { auth: true });
+  }
+
+  async completeCheckout(): Promise<unknown> {
+    return this.graphql(MUTATIONS.completeCheckout, undefined, { auth: true });
   }
 
   async orderHistory(): Promise<unknown> {

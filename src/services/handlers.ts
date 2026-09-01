@@ -7,7 +7,9 @@ import { bulletList, makeError, makeResponse } from "./format.js";
 import {
   MutationGateError,
   assertCancelOrderAllowed,
+  assertCartWriteAllowed,
   assertExplicitIntent,
+  assertLegalAge,
   assertLogoutAllowed,
   assertNotGuestForCharge,
   assertPlaceOrderAllowed
@@ -68,6 +70,180 @@ export async function handlePrivacyAudit(input: { response_format?: ResponseForm
     mutations_enabled: audit.mutations_enabled,
     redacts_by_default: (audit.redacts_by_default as string[]).join(", ")
   });
+}
+
+export async function handleLoadCategory(
+  input: { category_id: number; privacy_mode?: PrivacyMode; response_format?: ResponseFormat },
+  extra: HandlerDeps = {}
+) {
+  const { config, client } = deps(extra);
+  try {
+    const raw = await client.loadCategory(input.category_id);
+    const payload = applyPrivacy({ unofficial: true, category: raw }, input.privacy_mode ?? config.privacyMode);
+    return wrap(payload, input.response_format ?? "markdown", "Zé loadCategory", { unofficial: true });
+  } catch (error) {
+    return gateError(error);
+  }
+}
+
+export async function handleGetCart(
+  input: { privacy_mode?: PrivacyMode; response_format?: ResponseFormat } = {},
+  extra: HandlerDeps = {}
+) {
+  const { config, client } = deps(extra);
+  try {
+    const raw = await client.getCart();
+    const payload = applyPrivacy({ unofficial: true, cart: raw }, input.privacy_mode ?? config.privacyMode);
+    return wrap(payload, input.response_format ?? "markdown", "Zé cart", { unofficial: true });
+  } catch (error) {
+    return gateError(error);
+  }
+}
+
+export async function handleProductDetail(
+  input: { product_id: string; privacy_mode?: PrivacyMode; response_format?: ResponseFormat },
+  extra: HandlerDeps = {}
+) {
+  const { config, client } = deps(extra);
+  try {
+    const raw = await client.productDetail(input.product_id);
+    const payload = applyPrivacy({ unofficial: true, product: raw }, input.privacy_mode ?? config.privacyMode);
+    return wrap(payload, input.response_format ?? "markdown", "Zé product", { unofficial: true });
+  } catch (error) {
+    return gateError(error);
+  }
+}
+
+export async function handleListPaymentMethods(
+  input: { privacy_mode?: PrivacyMode; response_format?: ResponseFormat } = {},
+  extra: HandlerDeps = {}
+) {
+  const { config, client } = deps(extra);
+  try {
+    const raw = await client.listPaymentMethods();
+    const payload = applyPrivacy({ unofficial: true, payment_methods: raw }, input.privacy_mode ?? config.privacyMode);
+    return wrap(payload, input.response_format ?? "markdown", "Zé payment methods", { unofficial: true, redacted: true });
+  } catch (error) {
+    return gateError(error);
+  }
+}
+
+export async function handleLoadCheckout(
+  input: { privacy_mode?: PrivacyMode; response_format?: ResponseFormat } = {},
+  extra: HandlerDeps = {}
+) {
+  const { config, client } = deps(extra);
+  try {
+    const raw = await client.loadCheckout();
+    const payload = applyPrivacy({ unofficial: true, checkout: raw }, input.privacy_mode ?? config.privacyMode);
+    return wrap(payload, input.response_format ?? "markdown", "Zé loadCheckout", { unofficial: true, charges: false });
+  } catch (error) {
+    return gateError(error);
+  }
+}
+
+export async function handleCheckoutPreview(
+  input: { privacy_mode?: PrivacyMode; response_format?: ResponseFormat } = {},
+  extra: HandlerDeps = {}
+) {
+  const { config, client } = deps(extra);
+  try {
+    const raw = await client.manageCheckout();
+    const payload = applyPrivacy({ unofficial: true, preview: raw }, input.privacy_mode ?? config.privacyMode);
+    return wrap(payload, input.response_format ?? "markdown", "Zé checkout preview (manageCheckout)", {
+      unofficial: true,
+      charges: false
+    });
+  } catch (error) {
+    return gateError(error);
+  }
+}
+
+export async function handleBulkAddToCart(
+  input: {
+    bulk_add_to_cart_input: Record<string, unknown>;
+    confirmed_legal_age?: boolean;
+    explicit_user_intent?: boolean;
+    response_format?: ResponseFormat;
+  },
+  extra: HandlerDeps = {}
+) {
+  const { tokens, client, allowMutations } = deps(extra);
+  try {
+    assertCartWriteAllowed({ allowMutations, explicitUserIntent: input.explicit_user_intent });
+    assertLegalAge(input.confirmed_legal_age, "add alcohol-capable cart items");
+    const stored = await tokens.read();
+    assertNotGuestForCharge(stored?.source);
+    const raw = await client.bulkAddToCart(input.bulk_add_to_cart_input);
+    return wrap({ unofficial: true, cart: raw }, input.response_format ?? "json", "Zé bulkAddToCart", { ok: true });
+  } catch (error) {
+    return gateError(error);
+  }
+}
+
+export async function handleClearCartItems(
+  input: { explicit_user_intent?: boolean; response_format?: ResponseFormat },
+  extra: HandlerDeps = {}
+) {
+  const { tokens, client, allowMutations } = deps(extra);
+  try {
+    assertCartWriteAllowed({ allowMutations, explicitUserIntent: input.explicit_user_intent });
+    const stored = await tokens.read();
+    assertNotGuestForCharge(stored?.source);
+    const raw = await client.clearCartItems();
+    return wrap({ unofficial: true, cart: raw }, input.response_format ?? "json", "Zé clearCartItems", { ok: true });
+  } catch (error) {
+    return gateError(error);
+  }
+}
+
+export async function handleApplyCoupon(
+  input: { coupon_code: string; explicit_user_intent?: boolean; response_format?: ResponseFormat },
+  extra: HandlerDeps = {}
+) {
+  const { tokens, client, allowMutations } = deps(extra);
+  try {
+    assertCartWriteAllowed({ allowMutations, explicitUserIntent: input.explicit_user_intent });
+    const stored = await tokens.read();
+    assertNotGuestForCharge(stored?.source);
+    const raw = await client.applyCoupon(input.coupon_code);
+    return wrap({ unofficial: true, coupon: raw }, input.response_format ?? "json", "Zé applyCoupon", { ok: true });
+  } catch (error) {
+    return gateError(error);
+  }
+}
+
+export async function handleRateOrder(
+  input: { order_id: string; rating: number; explicit_user_intent?: boolean; response_format?: ResponseFormat },
+  extra: HandlerDeps = {}
+) {
+  const { client } = deps(extra);
+  try {
+    assertExplicitIntent(input.explicit_user_intent, "rate a Zé Delivery order");
+    const raw = await client.rateOrder(input.order_id, input.rating);
+    return wrap({ unofficial: true, rate: raw }, input.response_format ?? "json", "Zé rateOrder", { ok: true });
+  } catch (error) {
+    return gateError(error);
+  }
+}
+
+export async function handleCompleteCheckout(
+  input: { confirmed_legal_age?: boolean; explicit_user_intent?: boolean; response_format?: ResponseFormat },
+  extra: HandlerDeps = {}
+) {
+  const { tokens, client, allowMutations } = deps(extra);
+  try {
+    assertPlaceOrderAllowed({ allowMutations, explicitUserIntent: input.explicit_user_intent });
+    assertLegalAge(input.confirmed_legal_age, "complete a Zé checkout");
+    const stored = await tokens.read();
+    assertNotGuestForCharge(stored?.source);
+    const raw = await client.completeCheckout();
+    return wrap({ unofficial: true, checkout: raw }, input.response_format ?? "json", "Zé completeCheckout", {
+      ok: true
+    });
+  } catch (error) {
+    return gateError(error);
+  }
 }
 
 export async function handleListCategories(
@@ -157,6 +333,7 @@ export async function handleTrackOrder(
 export async function handlePlaceOrder(
   input: {
     input?: Record<string, unknown>;
+    confirmed_legal_age?: boolean;
     explicit_user_intent?: boolean;
     response_format?: ResponseFormat;
   },
@@ -165,6 +342,7 @@ export async function handlePlaceOrder(
   const { tokens, client, allowMutations } = deps(extra);
   try {
     assertPlaceOrderAllowed({ allowMutations, explicitUserIntent: input.explicit_user_intent });
+    assertLegalAge(input.confirmed_legal_age, "place a Zé Delivery order");
     const stored = await tokens.read();
     assertNotGuestForCharge(stored?.source);
     const raw = await client.placeOrder(input.input ?? {});

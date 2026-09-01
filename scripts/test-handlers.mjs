@@ -5,7 +5,12 @@ import { join } from "node:path";
 import { TokenStore } from "../dist/services/token-store.js";
 import { ZeClient } from "../dist/services/ze-client.js";
 import { peekConfig } from "../dist/services/config.js";
-import { handleCancelOrder, handleLogout, handlePlaceOrder } from "../dist/services/handlers.js";
+import {
+  handleBulkAddToCart,
+  handleCancelOrder,
+  handleLogout,
+  handlePlaceOrder
+} from "../dist/services/handlers.js";
 
 let fetches = 0;
 const fetchImpl = async () => {
@@ -54,11 +59,28 @@ const guestTokens = new TokenStore(guestPath);
 const guestClient = new ZeClient(config, guestTokens, fetchImpl);
 fetches = 0;
 const guestPay = await handlePlaceOrder(
-  { explicit_user_intent: true, response_format: "json" },
+  { explicit_user_intent: true, confirmed_legal_age: true, response_format: "json" },
   { client: guestClient, tokens: guestTokens, allowMutations: true, fetchImpl }
 );
 assert.equal(guestPay.isError, true);
 assert.match(JSON.stringify(guestPay.structuredContent), /guest/i);
+assert.equal(fetches, 0);
+
+fetches = 0;
+const deniedAge = await handlePlaceOrder(
+  { explicit_user_intent: true, confirmed_legal_age: false, response_format: "json" },
+  { client, tokens, allowMutations: true, fetchImpl }
+);
+assert.equal(deniedAge.isError, true);
+assert.match(JSON.stringify(deniedAge.structuredContent), /legal|18/i);
+assert.equal(fetches, 0);
+
+fetches = 0;
+const deniedBulk = await handleBulkAddToCart(
+  { bulk_add_to_cart_input: { items: [] }, explicit_user_intent: true, confirmed_legal_age: true, response_format: "json" },
+  { client, tokens, allowMutations: false, fetchImpl }
+);
+assert.equal(deniedBulk.isError, true);
 assert.equal(fetches, 0);
 
 fetches = 0;

@@ -16,11 +16,22 @@ export function buildCapabilities() {
       "ze_list_categories",
       "ze_list_groups",
       "ze_search",
+      "ze_load_category",
+      "ze_get_cart",
+      "ze_product_detail",
+      "ze_list_payment_methods",
+      "ze_load_checkout",
+      "ze_checkout_preview",
       "ze_order_history",
       "ze_track_order"
     ],
-    gated_pay: ["ze_place_order", "ze_cancel_order"],
-    gated_intent_only: ["ze_logout"],
+    gated_cart_writes: ["ze_bulk_add_to_cart", "ze_clear_cart_items", "ze_apply_coupon"],
+    gated_pay: ["ze_place_order", "ze_complete_checkout", "ze_cancel_order"],
+    gated_intent_only: ["ze_logout", "ze_rate_order"],
+    honest_gaps: [
+      { wanted: "saved addresses", probe: "Query.addresses / listAddresses / customer → GRAPHQL_VALIDATION_FAILED" },
+      { wanted: "age API field", probe: "isLegalAge / legalAge → GRAPHQL_VALIDATION_FAILED; local 18+ gate is fail-closed" }
+    ],
     recommended_agent_flow: [
       "ze_connection_status",
       "ze_list_categories / ze_search",
