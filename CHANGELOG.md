@@ -1,3 +1,7 @@
+## 0.1.4 - 2026-09-01
+
+`ze_checkout_preview` now calls the `loadCheckout` **query**. It no longer fires the `manageCheckout` mutation (which attached a Bearer on a readOnly tool). Handler tests cover applyCoupon, clearCartItems and completeCheckout dual-gate with zero fetches.
+
 ## 0.1.3 - 2026-09-01
 
 Probe-backed GraphQL expansion: loadCategory, loadCart, loadProduct, listPaymentMethods, loadCheckout, manageCheckout preview, bulkAddToCart, clearCartItems, applyCoupon, rateOrder, completeCheckout. Alcohol 18+ gate is fail-closed (no age API field). Addresses remain an honest gap.

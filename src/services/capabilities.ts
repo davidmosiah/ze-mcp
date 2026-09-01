@@ -30,7 +30,11 @@ export function buildCapabilities() {
     gated_intent_only: ["ze_logout", "ze_rate_order"],
     honest_gaps: [
       { wanted: "saved addresses", probe: "Query.addresses / listAddresses / customer → GRAPHQL_VALIDATION_FAILED" },
-      { wanted: "age API field", probe: "isLegalAge / legalAge → GRAPHQL_VALIDATION_FAILED; local 18+ gate is fail-closed" }
+      { wanted: "age API field", probe: "isLegalAge / legalAge → GRAPHQL_VALIDATION_FAILED; local 18+ gate is fail-closed" },
+      {
+        wanted: "manageCheckout as a read tool",
+        probe: "manageCheckout is a GraphQL mutation; ze_checkout_preview uses the loadCheckout query only"
+      }
     ],
     recommended_agent_flow: [
       "ze_connection_status",

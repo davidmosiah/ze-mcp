@@ -17,7 +17,7 @@ Default: read-only. Never pays.
 Charge only if ZE_ALLOW_MUTATIONS is enabled AND explicit_user_intent is true. Guest tokens cannot charge.
 Redacts street, phone, email, GPS/latlng polylines.
 
-Read: categories/groups/search/loadCategory/product/cart/payment methods/loadCheckout/manageCheckout preview/orders/track.
+Read: categories/groups/search/loadCategory/product/cart/payment methods/loadCheckout (checkout preview is this query, not the manageCheckout mutation)/orders/track.
 Gated cart: bulkAddToCart, clearCartItems, applyCoupon.
 Gated pay: place, completeCheckout, cancel. 18+ confirmation required to place/add (no age API field).
 Intent only: logout, rateOrder.

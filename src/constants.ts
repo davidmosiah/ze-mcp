@@ -1,5 +1,5 @@
 export const SERVER_NAME = "ze-mcp-server";
-export const SERVER_VERSION = "0.1.3";
+export const SERVER_VERSION = "0.1.4";
 export const NPM_PACKAGE_NAME = "ze-mcp-unofficial";
 export const PINNED_NPM_PACKAGE = `${NPM_PACKAGE_NAME}@${SERVER_VERSION}`;
 

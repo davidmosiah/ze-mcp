@@ -148,11 +148,13 @@ export async function handleCheckoutPreview(
 ) {
   const { config, client } = deps(extra);
   try {
-    const raw = await client.manageCheckout();
+    // Query only. manageCheckout is a GraphQL mutation and must not run from a read tool.
+    const raw = await client.loadCheckout();
     const payload = applyPrivacy({ unofficial: true, preview: raw }, input.privacy_mode ?? config.privacyMode);
-    return wrap(payload, input.response_format ?? "markdown", "Zé checkout preview (manageCheckout)", {
+    return wrap(payload, input.response_format ?? "markdown", "Zé checkout preview (loadCheckout query)", {
       unofficial: true,
-      charges: false
+      charges: false,
+      graphql: "query"
     });
   } catch (error) {
     return gateError(error);

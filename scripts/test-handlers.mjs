@@ -6,16 +6,25 @@ import { TokenStore } from "../dist/services/token-store.js";
 import { ZeClient } from "../dist/services/ze-client.js";
 import { peekConfig } from "../dist/services/config.js";
 import {
+  handleApplyCoupon,
   handleBulkAddToCart,
   handleCancelOrder,
+  handleCheckoutPreview,
+  handleClearCartItems,
+  handleCompleteCheckout,
   handleLogout,
   handlePlaceOrder
 } from "../dist/services/handlers.js";
 
 let fetches = 0;
-const fetchImpl = async () => {
+const bodies = [];
+const fetchImpl = async (_url, init = {}) => {
   fetches += 1;
-  return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "content-type": "application/json" } });
+  bodies.push(String(init.body || ""));
+  return new Response(JSON.stringify({ ok: true, data: {} }), {
+    status: 200,
+    headers: { "content-type": "application/json" }
+  });
 };
 
 const home = mkdtempSync(join(tmpdir(), "ze-handlers-"));
@@ -82,6 +91,72 @@ const deniedBulk = await handleBulkAddToCart(
 );
 assert.equal(deniedBulk.isError, true);
 assert.equal(fetches, 0);
+
+fetches = 0;
+const deniedCouponMutations = await handleApplyCoupon(
+  { coupon_code: "PROBE", explicit_user_intent: true, response_format: "json" },
+  { client, tokens, allowMutations: false, fetchImpl }
+);
+assert.equal(deniedCouponMutations.isError, true);
+assert.match(JSON.stringify(deniedCouponMutations.structuredContent), /USER_ACTION_REQUIRED|ZE_ALLOW_MUTATIONS/);
+assert.equal(fetches, 0, "applyCoupon must not hit Zé when mutations are off");
+
+fetches = 0;
+const deniedCouponIntent = await handleApplyCoupon(
+  { coupon_code: "PROBE", explicit_user_intent: false, response_format: "json" },
+  { client, tokens, allowMutations: true, fetchImpl }
+);
+assert.equal(deniedCouponIntent.isError, true);
+assert.match(JSON.stringify(deniedCouponIntent.structuredContent), /explicit_user_intent/);
+assert.equal(fetches, 0, "applyCoupon must not hit Zé without explicit_user_intent");
+
+fetches = 0;
+const deniedClearMutations = await handleClearCartItems(
+  { explicit_user_intent: true, response_format: "json" },
+  { client, tokens, allowMutations: false, fetchImpl }
+);
+assert.equal(deniedClearMutations.isError, true);
+assert.match(JSON.stringify(deniedClearMutations.structuredContent), /USER_ACTION_REQUIRED|ZE_ALLOW_MUTATIONS/);
+assert.equal(fetches, 0, "clearCartItems must not hit Zé when mutations are off");
+
+fetches = 0;
+const deniedClearIntent = await handleClearCartItems(
+  { explicit_user_intent: false, response_format: "json" },
+  { client, tokens, allowMutations: true, fetchImpl }
+);
+assert.equal(deniedClearIntent.isError, true);
+assert.match(JSON.stringify(deniedClearIntent.structuredContent), /explicit_user_intent/);
+assert.equal(fetches, 0, "clearCartItems must not hit Zé without explicit_user_intent");
+
+fetches = 0;
+const deniedCompleteMutations = await handleCompleteCheckout(
+  { explicit_user_intent: true, confirmed_legal_age: true, response_format: "json" },
+  { client, tokens, allowMutations: false, fetchImpl }
+);
+assert.equal(deniedCompleteMutations.isError, true);
+assert.match(JSON.stringify(deniedCompleteMutations.structuredContent), /USER_ACTION_REQUIRED|ZE_ALLOW_MUTATIONS/);
+assert.equal(fetches, 0, "completeCheckout must not hit Zé when mutations are off");
+
+fetches = 0;
+const deniedCompleteIntent = await handleCompleteCheckout(
+  { explicit_user_intent: false, confirmed_legal_age: true, response_format: "json" },
+  { client, tokens, allowMutations: true, fetchImpl }
+);
+assert.equal(deniedCompleteIntent.isError, true);
+assert.match(JSON.stringify(deniedCompleteIntent.structuredContent), /explicit_user_intent/);
+assert.equal(fetches, 0, "completeCheckout must not hit Zé without explicit_user_intent");
+
+fetches = 0;
+bodies.length = 0;
+const preview = await handleCheckoutPreview({ response_format: "json" }, { client, tokens, fetchImpl });
+assert.notEqual(preview.isError, true, "checkout preview is a query and must not fail-closed as a write");
+assert.ok(fetches >= 1, "preview hits GraphQL");
+assert.ok(bodies.length >= 1);
+for (const body of bodies) {
+  assert.match(body, /loadCheckout/);
+  assert.doesNotMatch(body, /manageCheckout/);
+  assert.doesNotMatch(body, /mutation\s*\{/i);
+}
 
 fetches = 0;
 const deniedCancel = await handleCancelOrder(

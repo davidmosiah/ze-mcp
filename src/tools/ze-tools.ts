@@ -190,7 +190,7 @@ export function registerZeTools(server: McpServer): void {
     "ze_checkout_preview",
     {
       title: "Zé checkout preview",
-      description: "manageCheckout mutation returned JSON 200 without charging. Not completeCheckout.",
+      description: "Read-only loadCheckout query. Does not run the manageCheckout mutation and does not charge.",
       inputSchema: ReadInputSchema.shape,
       annotations: readOnly
     },

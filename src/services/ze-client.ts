@@ -103,10 +103,6 @@ export class ZeClient {
     return this.graphql(QUERIES.loadCheckout, undefined, { auth: true });
   }
 
-  async manageCheckout(): Promise<unknown> {
-    return this.graphql(MUTATIONS.manageCheckout);
-  }
-
   async bulkAddToCart(bulkAddToCartInput: Record<string, unknown>): Promise<unknown> {
     return this.graphql(MUTATIONS.bulkAdd, { bulkAddToCartInput }, { auth: true });
   }
