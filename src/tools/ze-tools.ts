@@ -1,3 +1,4 @@
+import { assertToolInputBudget } from "../services/tool-input-budget.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
   BulkAddInputSchema,
@@ -42,34 +43,38 @@ import type { ToolResponse } from "../types.js";
 
 type CallFn = (args: Record<string, unknown>) => Promise<ToolResponse>;
 const call =
-  <T,>(fn: (input: T) => Promise<ToolResponse>): CallFn =>
-  (args) =>
-    fn(args as T);
+  <T,>(schema: { safeParse(input: unknown): { success: true; data: T } | { success: false } }, fn: (input: T) => Promise<ToolResponse>): CallFn =>
+  async (args) => {
+    assertToolInputBudget(args);
+    const parsed = schema.safeParse(args);
+    if (!parsed.success) throw new Error("INVALID_INPUT: arguments do not match the tool schema");
+    return fn(parsed.data);
+  };
 
 /** Same handlers as MCP tools — CLI `call` uses this so skill-only clients hit the identical gates. */
 export const TOOL_CALLS: Record<string, CallFn> = {
-  ze_connection_status: call(handleConnectionStatus),
-  ze_capabilities: call(handleCapabilities),
-  ze_privacy_audit: call(handlePrivacyAudit),
-  ze_list_categories: call(handleListCategories),
-  ze_list_groups: call(handleListGroups),
-  ze_search: call(handleSearch),
-  ze_load_category: call(handleLoadCategory),
-  ze_get_cart: call(handleGetCart),
-  ze_product_detail: call(handleProductDetail),
-  ze_list_payment_methods: call(handleListPaymentMethods),
-  ze_load_checkout: call(handleLoadCheckout),
-  ze_checkout_preview: call(handleCheckoutPreview),
-  ze_order_history: call(handleOrderHistory),
-  ze_track_order: call(handleTrackOrder),
-  ze_bulk_add_to_cart: call(handleBulkAddToCart),
-  ze_clear_cart_items: call(handleClearCartItems),
-  ze_apply_coupon: call(handleApplyCoupon),
-  ze_rate_order: call(handleRateOrder),
-  ze_place_order: call(handlePlaceOrder),
-  ze_complete_checkout: call(handleCompleteCheckout),
-  ze_cancel_order: call(handleCancelOrder),
-  ze_logout: call(handleLogout)
+  ze_connection_status: call(ResponseOnlyInputSchema, handleConnectionStatus),
+  ze_capabilities: call(ResponseOnlyInputSchema, handleCapabilities),
+  ze_privacy_audit: call(ResponseOnlyInputSchema, handlePrivacyAudit),
+  ze_list_categories: call(ReadInputSchema, handleListCategories),
+  ze_list_groups: call(ReadInputSchema, handleListGroups),
+  ze_search: call(SearchInputSchema, handleSearch),
+  ze_load_category: call(CategoryInputSchema, handleLoadCategory),
+  ze_get_cart: call(ReadInputSchema, handleGetCart),
+  ze_product_detail: call(ProductIdInputSchema, handleProductDetail),
+  ze_list_payment_methods: call(ReadInputSchema, handleListPaymentMethods),
+  ze_load_checkout: call(ReadInputSchema, handleLoadCheckout),
+  ze_checkout_preview: call(ReadInputSchema, handleCheckoutPreview),
+  ze_order_history: call(ReadInputSchema, handleOrderHistory),
+  ze_track_order: call(OrderIdInputSchema, handleTrackOrder),
+  ze_bulk_add_to_cart: call(BulkAddInputSchema, handleBulkAddToCart),
+  ze_clear_cart_items: call(CartWriteInputSchema, handleClearCartItems),
+  ze_apply_coupon: call(CouponInputSchema, handleApplyCoupon),
+  ze_rate_order: call(RateOrderInputSchema, handleRateOrder),
+  ze_place_order: call(PlaceOrderInputSchema, handlePlaceOrder),
+  ze_complete_checkout: call(PlaceOrderInputSchema, handleCompleteCheckout),
+  ze_cancel_order: call(CancelOrderInputSchema, handleCancelOrder),
+  ze_logout: call(LogoutInputSchema, handleLogout)
 };
 
 const readOnly = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true } as const;
