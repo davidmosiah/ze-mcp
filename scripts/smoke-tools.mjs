@@ -65,6 +65,14 @@ try {
   assert.equal(status.structuredContent?.never_pays_by_default, true);
 
   console.log(JSON.stringify({ ok: true, tools: names.length, gated_place_order: true }, null, 2));
+  const oversized = await client.callTool({
+    name: "ze_capabilities",
+    arguments: { response_format: "json", excess: Array(10_001).fill(0) }
+  });
+  assert.equal(oversized.isError, true);
+  assert.match(JSON.stringify(oversized), /maximum of 10000 elements/);
+  const afterLimit = await client.callTool({ name: "ze_capabilities", arguments: { response_format: "json" } });
+  assert.notEqual(afterLimit.isError, true, "valid requests still work after oversized input");
 } finally {
   await client.close();
 }

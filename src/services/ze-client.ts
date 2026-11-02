@@ -1,3 +1,4 @@
+import { readResponseText, ResponseBodyError } from "./response-body.js";
 import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { promises as fs } from "node:fs";
@@ -183,9 +184,10 @@ export class ZeClient {
         method: "POST",
         headers,
         body: JSON.stringify(variables ? { query, variables } : { query }),
+        redirect: "error",
         signal: controller.signal
       });
-      const text = await response.text();
+      const text = await readResponseText(response, controller.signal);
       let parsed: unknown = text;
       try {
         parsed = text ? JSON.parse(text) : null;
@@ -203,7 +205,7 @@ export class ZeClient {
     } catch (error) {
       if (error instanceof ZeClientError) throw error;
       throw new ZeClientError(
-        `Zé Delivery request failed: ${(error as Error).message}`,
+        error instanceof ResponseBodyError ? error.message : "Zé Delivery request failed",
         undefined,
         "ZE_UPSTREAM_UNAVAILABLE"
       );
@@ -224,13 +226,17 @@ export class ZeClient {
 export function consumerRequestUrl(apiBase: string, path: string): string {
   try {
     assertAllowedConsumerPath(path);
+    const base = new URL(apiBase);
+    if (base.pathname !== "/" || base.search || base.hash) {
+      throw new Error("PATH_NOT_ALLOWED: API base must be a bare HTTPS origin");
+    }
   } catch (error) {
     throw new ZeClientError((error as Error).message, undefined, "PATH_NOT_ALLOWED");
   }
   const url = apiBase.replace(/\/$/, "") + path;
   if (!isAllowedZeHost(url)) {
     throw new ZeClientError(
-      `HOST_NOT_ALLOWED: refusing unofficial Zé Delivery host ${apiBase}`,
+      "HOST_NOT_ALLOWED: consumer base must use an allowed HTTPS origin",
       undefined,
       "PATH_NOT_ALLOWED"
     );

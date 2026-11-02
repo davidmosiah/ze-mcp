@@ -1,4 +1,13 @@
+## Unreleased
+
+- Isolate concurrent token writes with exclusive random temporary files, restrictive permissions, and failure cleanup.
+- Reject insecure or ambiguous consumer bases and redirects; preserve the documented provider endpoints.
+- Bound optional HTTP MCP JSON bodies to 1 MiB before allocating an MCP server.
+- Refresh vulnerable dependencies within existing compatible ranges and add offline regression fixtures.
+- Apply CLI schema and size budgets before handlers, and cancel oversized or timed-out upstream response streams.
+
 ## 0.1.4 - 2026-09-01
+
 
 `ze_checkout_preview` now calls the `loadCheckout` **query**. It no longer fires the `manageCheckout` mutation (which attached a Bearer on a readOnly tool). Handler tests cover applyCoupon, clearCartItems and completeCheckout dual-gate with zero fetches.
 

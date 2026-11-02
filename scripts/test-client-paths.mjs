@@ -31,6 +31,7 @@ function headerMap(headers) {
 }
 
 const fetchImpl = async (url, init = {}) => {
+  assert.equal(init.redirect, "error", "consumer redirects must fail closed");
   captured.push({
     url: String(url),
     method: String(init.method || "GET").toUpperCase(),
@@ -113,3 +114,13 @@ console.log(
     2
   )
 );
+
+const oversizedClient = new ZeClient(config, { read: async () => ({ access_token: "fixture-only", source: "user" }) }, async () => new Response("x".repeat(4 * 1024 * 1024 + 1)));
+await assert.rejects(() => oversizedClient.listCategories(), /allowed size/);
+
+const failingClient = new ZeClient(config, { read: async () => ({ access_token: "fixture-only", source: "user" }) }, async () => { throw new Error("synthetic-private-network-secret"); });
+await assert.rejects(() => failingClient.listCategories(), error => {
+  assert.match(error.message, /request failed/);
+  assert.doesNotMatch(error.message, /synthetic-private/);
+  return true;
+});
